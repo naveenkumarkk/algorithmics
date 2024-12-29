@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureCompressor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="toggle-section">
+        <button id="zipToggle" class="active">Zip File</button>
+        <button id="unzipToggle">Unzip File</button>
+    </div>
+    <div class="container">
+        <h1 id="formTitle">SecureCompressor - Zip File</h1>
+        <form id="zipForm" class="form-section" method="POST" enctype="multipart/form-data">
+            <label for="fileInput">Select Files/Folders:</label>
+            <input type="file" id="fileInput" name="files" multiple>
+            <label for="passwordZip">Password:</label>
+            <input type="password" id="passwordZip" name="password" placeholder="Enter password">
+            <button type="button" id="compressButton">Compress & Encrypt</button>
+        </form>
+
+        <form id="unzipForm" class="form-section hidden" method="POST" enctype="multipart/form-data">
+            <label for="zipFileInput">Select ZIP File:</label>
+            <input type="file" id="zipFileInput" name="file" accept=".zip">
+            <label for="passwordUnzip">Password:</label>
+            <input type="password" id="passwordUnzip" name="password" placeholder="Enter password">
+            <button type="button" id="decompressButton">Decrypt & Extract</button>
+        </form>
+
+        <div id="output" class="output-section"></div>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
