@@ -21,22 +21,32 @@ document.getElementById("compressButton").addEventListener("click", () => {
     const password = document.getElementById("passwordZip").value;
 
     if (!files.length || !password) {
-        displayOutput("Please select files/folders and enter a password.");
+        displayOutput("Please select files and enter a password.");
         return;
     }
 
-    // Process files and folders
-    const filePaths = [];
-    for (const file of files) {
-        filePaths.push(file.webkitRelativePath || file.name); // Capture folder structure
-    }
+    const formData = new FormData();
+    Array.from(files).forEach(file => formData.append("files", file));
+    formData.append("password", password);
 
-    // Simulate compression and encryption
-    const outputFileName = "encrypted_folder.zip";
-    displayOutput(`Compressing and encrypting ${filePaths.length} items...`);
-    setTimeout(() => {
-        displayOutput(`Files and folders encrypted and saved as: ${outputFileName}`);
-    }, 2000);
+
+    fetch("/compress", {
+        method: "POST",
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                displayOutput(data.error);
+            } else {
+                const downloadLink = `<a href="/download/${data.output}" target="_blank">Download Compressed File</a>`;
+                displayOutput(`Files encrypted successfully. ${downloadLink}`);
+            }
+        })
+        .catch(error => displayOutput(`Error: ${error}`));
+
+
+    
 });
 
 document.getElementById("decompressButton").addEventListener("click", () => {
@@ -61,9 +71,10 @@ document.getElementById("decompressButton").addEventListener("click", () => {
             if (data.error) {
                 displayOutput(data.error);
             } else {
-                const downloadUrl = `/download/${data.output}`;
-                const downloadButton = `<button onclick="downloadFile('${downloadUrl}', '${data.output.split('/').pop()}')">Download Folder</button>`;
-                displayOutput(`Files decrypted successfully. ${downloadButton}`);
+                const downloadLink2 = `<a href="/download/${data.output}" target="_blank">Download Decrypted File</a>`;
+                // const downloadUrl = `/download/${data.output}`;
+                // const downloadButton = `<button onclick="downloadFile('${downloadUrl}', '${data.output.split('/').pop()}')">Download Folder</button>`;
+                displayOutput(`Files decrypted successfully. ${downloadLink2}`);
             }
         })
         .catch(error => displayOutput(`Error: ${error}`));    

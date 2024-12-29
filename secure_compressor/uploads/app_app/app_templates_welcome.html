@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/default.css') }}">
+    <link rel="icon" type="svg" href="{{ url_for('static', filename='img/login.svg') }}">
+    <title>AI Tutor - Welcome</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="filler"></div>
+        <div class="welcome-container">
+            <h1>Welcome to AI Tutor!</h1>
+            <p>
+                AI Tutor is here to guide you through your study journey using the
+                <b>Plan-Monitor-Reflect-Tips</b> approach.</br>
+                Begin by creating a personalized study plan that suits your needs and goals.
+                Start your learning journey by clicking the button below.
+            </p>
+            <div class="buttons">
+                <button class="welcome-tutorial-button" onclick="window.location.href='/chatgpt/tips'">
+                    <div class="button-content">
+                        Start with a tutorial
+                    </div>
+                </button>
+                <button class="welcome-start-button" onclick="window.location.href='/chatgpt/chatscreen'">
+                    <div class="button-content">
+                        Start with planning
+                    </div>
+                </button>
+            </div>
+        </div>
+        <div class="filler"></div>
+    </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@12.3.2/dist/markdown-it.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/postMessages.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/help.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/generalEvents.js') }}"></script>
+</body>
+
+</html>

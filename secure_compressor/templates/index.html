@@ -22,14 +22,13 @@
         method="POST"
         enctype="multipart/form-data"
       >
-        <label for="fileInput">Select Files/Folders:</label>
+        <label for="fileInput">Select Folders:</label>
         <input
           type="file"
           id="fileInput"
           name="files"
-          webkitdirectory
-          directory
           multiple
+          webkitdirectory
         />
         <label for="passwordZip">Password:</label>
         <input
@@ -40,6 +39,7 @@
         />
         <button type="button" id="compressButton">Compress & Encrypt</button>
       </form>
+
       <form
         id="unzipForm"
         class="form-section hidden"
@@ -57,7 +57,7 @@
         />
         <button type="button" id="decompressButton">Decrypt & Extract</button>
       </form>
-hello
+
       <div id="output" class="output-section"></div>
     </div>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
