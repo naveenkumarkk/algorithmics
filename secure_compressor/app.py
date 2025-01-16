@@ -12,9 +12,8 @@ OUTPUT_FOLDER = "output"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-app.config["UPLOAD_FOLDER"] = os.path.abspath("uploads")
-app.config["OUTPUT_FOLDER"] = os.path.abspath("output")
-
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["OUTPUT_FOLDER"] = OUTPUT_FOLDER
 
 @app.route("/")
 def index():
@@ -28,13 +27,16 @@ def compress():
     if not password or not uploaded_files:
         return jsonify({"error": "Password and files are required."}), 400
 
+    # Use the name of the first file/folder as the base name
     original_name = secure_filename(uploaded_files[0].filename).split('.')[0]
     folder_path = os.path.join(app.config["UPLOAD_FOLDER"], original_name)
     os.makedirs(folder_path, exist_ok=True)
 
+    # Save uploaded files
     for file in uploaded_files:
         file.save(os.path.join(folder_path, secure_filename(file.filename)))
 
+    # Compress and encrypt
     compressor = SecureCompressor(password)
     encrypted_file_name = f"{original_name}.secure"
     encrypted_file_path = os.path.join(app.config["OUTPUT_FOLDER"], encrypted_file_name)
@@ -42,7 +44,7 @@ def compress():
 
     return jsonify({
         "message": "Files compressed and encrypted successfully.",
-        "output": f"download/{encrypted_file_name}"
+        "output": f"/download/{encrypted_file_name}"
     })
 
 
@@ -54,14 +56,19 @@ def decompress():
     if not password or not uploaded_file:
         return jsonify({"error": "Password and an encrypted file are required."}), 400
 
+    # Save the uploaded encrypted file
     original_name = secure_filename(uploaded_file.filename).split('.')[0]
     encrypted_path = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(uploaded_file.filename))
     uploaded_file.save(encrypted_path)
 
+    # Decrypt and decompress
     compressor = SecureCompressor(password)
     output_folder = os.path.join(app.config["OUTPUT_FOLDER"], original_name)
     os.makedirs(output_folder, exist_ok=True)
-    compressor.decrypt_and_decompress_folder(encrypted_path, output_folder)
+    try:
+        compressor.decrypt_and_decompress_folder(encrypted_path, output_folder)
+    except ValueError as e:
+        return jsonify({"error": "Password doesn't match"}), 400
 
     zip_file_name = f"{original_name}.zip"
     zip_file_path = os.path.join(app.config["OUTPUT_FOLDER"], zip_file_name)
@@ -69,34 +76,14 @@ def decompress():
 
     return jsonify({
         "message": "Files decrypted and extracted successfully.",
-        "output": f"download/{zip_file_name}"
+        "output": f"/download/{zip_file_name}"
     })
 
 
 @app.route("/download/<path:filename>")
 def download(filename):
     directory = app.config["OUTPUT_FOLDER"]
-    safe_filename = secure_filename(filename)
-
-    print(f"Sanitized filename: {safe_filename}")
-
-    file_path = os.path.join(directory, safe_filename)
-    if not os.path.exists(file_path):
-        return jsonify({"error": f"File {safe_filename} not found in {directory}."}), 404
-
-    return  send_from_directory(directory,safe_filename, as_attachment=True)
-
-@app.route("/test-download")
-def test_download():
-    directory = app.config["OUTPUT_FOLDER"]
-    filename = "Machine_Learning_Adriana_Lima.secure"
-
-    file_path = os.path.join(directory, filename)
-    if not os.path.exists(file_path):
-        return jsonify({"error": "Test file not found."}), 404
-
     return send_from_directory(directory, filename, as_attachment=True)
-
 
 
 if __name__ == "__main__":

@@ -54,7 +54,7 @@ document.getElementById("decompressButton").addEventListener("click", () => {
     const password = document.getElementById("passwordUnzip").value;
 
     if (!file || !password) {
-        displayOutput("Please select a valid ZIP file and enter a password.");
+        displayOutput("Please select a valid secure file and enter a password.");
         return;
     }
 
