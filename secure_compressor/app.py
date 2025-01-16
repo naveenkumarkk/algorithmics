@@ -44,7 +44,7 @@ def compress():
 
     return jsonify({
         "message": "Files compressed and encrypted successfully.",
-        "output": f"/download/{encrypted_file_name}"
+        "output": f"download/{encrypted_file_name}"
     })
 
 
@@ -76,7 +76,7 @@ def decompress():
 
     return jsonify({
         "message": "Files decrypted and extracted successfully.",
-        "output": f"/download/{zip_file_name}"
+        "output": f"download/{zip_file_name}"
     })
 
 
