@@ -76,7 +76,7 @@ if img is None:
     raise FileNotFoundError("image.jpg not found or not readable.")
 img_height, img_width, _ = img.shape
 
-tile_height, tile_width = 20, 20
+tile_height, tile_width = 120, 120
 num_tiles_h = img_height // tile_height
 num_tiles_w = img_width // tile_width
 

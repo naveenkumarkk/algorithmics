@@ -1,6 +1,6 @@
 import os
-import json
-import zlib
+import tarfile
+import bz2
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
@@ -54,48 +54,64 @@ class SecureCompressor:
 
         return original_data
 
-    def compress_and_encrypt_file(self, file_path: str):
-        """Compress and encrypt a single file."""
-        with open(file_path, 'rb') as file:
-            data = file.read()
+    def create_tar(self, folder_path: str, tar_path: str, compresslevel: int = 9):
+        """Create a tar.bz2 archive of the folder with adjustable compression level, excluding unnecessary files."""
+        if compresslevel < 1 or compresslevel > 9:
+            raise ValueError("Compression level must be between 1 (fastest) and 9 (highest compression).")
 
-        # Compress the data
-        compressed_data = zlib.compress(data)
+        # Use the bz2.BZ2File object to customize the compression level
+        with bz2.BZ2File(tar_path, "wb", compresslevel=compresslevel) as bz2_file:
+            with tarfile.open(fileobj=bz2_file, mode="w") as tar:
+                for root, _, files in os.walk(folder_path):
+                    for file in files:
+                        if not file.endswith(('.jpg', '.png', '.mp4', '.zip', '.tar', '.bz2')):
+                            full_path = os.path.join(root, file)
+                            tar.add(full_path, arcname=os.path.relpath(full_path, folder_path))
 
-        # Encrypt the compressed data
-        encrypted_data = self.encrypt(compressed_data)
 
-        return encrypted_data
+    def extract_tar(self, tar_path: str, output_folder: str):
+        """Extract a tar archive to the specified folder, handling permission errors."""
+        try:
+            with tarfile.open(tar_path, "r:bz2") as tar:
+                for member in tar.getmembers():
+                    try:
+                        tar.extract(member, path=output_folder)
+                    except PermissionError:
+                        print(f"Permission denied for {member.name}. Skipping.")
+        except Exception as e:
+            print(f"An error occurred while extracting {tar_path}: {e}")
+
 
     def compress_and_encrypt_folder(self, folder_path: str, output_file: str):
-        """Compress and encrypt an entire folder."""
-        archive = {}
+        """Compress and encrypt an entire folder or file."""
+        if not os.path.exists(folder_path):
+            raise FileNotFoundError(f"The folder or file {folder_path} does not exist.")
 
-        # Walk through the folder
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                full_path = os.path.join(root, file)
-                relative_path = os.path.relpath(full_path, folder_path)
-                encrypted_data = self.compress_and_encrypt_file(full_path)
-                archive[relative_path] = encrypted_data
+        tar_path = f"{folder_path}.tar.bz2"
 
-        # Serialize the archive
-        serialized_archive = json.dumps(
-            {k: v.hex() for k, v in archive.items()}
-        ).encode()
+        # Create a tar.bz2 archive for a folder or single file
+        self.create_tar(folder_path, tar_path)
 
-        # Encrypt the serialized archive
-        encrypted_archive = self.encrypt(serialized_archive)
+        # Read the tar archive
+        with open(tar_path, "rb") as tar_file:
+            tar_data = tar_file.read()
 
-        # Save to file
-        with open(output_file, 'wb') as out_file:
-            out_file.write(self.salt + encrypted_archive)
+        # Encrypt the compressed tar archive
+        encrypted_data = self.encrypt(tar_data)
 
-        print(f"Folder compressed and encrypted to: {output_file}")
+        # Write the salt and encrypted data to the output file
+        with open(output_file, "wb") as out_file:
+            out_file.write(self.salt + encrypted_data)
+
+        os.remove(tar_path)  # Clean up temporary tar file
+        print(f"Folder or file compressed and encrypted to: {output_file}")
 
     def decrypt_and_decompress_folder(self, encrypted_file: str, output_folder: str):
-        """Decrypt and decompress an encrypted folder."""
-        with open(encrypted_file, 'rb') as in_file:
+        """Decrypt and decompress an encrypted folder or file."""
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+
+        with open(encrypted_file, "rb") as in_file:
             data = in_file.read()
 
         # Extract salt and encrypted data
@@ -108,19 +124,13 @@ class SecureCompressor:
         # Decrypt the archive
         decrypted_data = self.decrypt(encrypted_archive)
 
-        # Deserialize the archive
-        archive = json.loads(decrypted_data.decode())
-        archive = {k: bytes.fromhex(v) for k, v in archive.items()}
+        # Save the tar archive temporarily
+        tar_path = os.path.join(output_folder, "temp_archive.tar.bz2")
+        with open(tar_path, "wb") as tar_file:
+            tar_file.write(decrypted_data)
 
-        # Decompress and save files
-        for relative_path, encrypted_data in archive.items():
-            decrypted_file_data = zlib.decompress(self.decrypt(encrypted_data))
-            full_path = os.path.join(output_folder, relative_path)
+        # Extract the tar archive
+        self.extract_tar(tar_path, output_folder)
+        os.remove(tar_path)  # Clean up temporary tar file
 
-            # Create directories if needed
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-            with open(full_path, 'wb') as out_file:
-                out_file.write(decrypted_file_data)
-
-        print(f"Folder decrypted and decompressed to: {output_folder}")
+        print(f"Folder or file decrypted and decompressed to: {output_folder}")

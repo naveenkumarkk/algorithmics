@@ -1,4 +1,11 @@
 
-/.vscode
 /.venv
+/uploads
+/exam
+/secure_compressor/output
+/secure_compressor/hw-1
+/hw-1
 /secure_compressor/__pycache__
+*.tar
+/grain_humidity
+/output

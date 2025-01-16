@@ -39,7 +39,7 @@ document.getElementById("compressButton").addEventListener("click", () => {
             if (data.error) {
                 displayOutput(data.error);
             } else {
-                const downloadLink = `<a href="/download/${data.output}" target="_blank">Download Compressed File</a>`;
+                const downloadLink = `<a href="/${data.output}" target="_blank">Download Compressed File</a>`;
                 displayOutput(`Files encrypted successfully. ${downloadLink}`);
             }
         })
@@ -71,9 +71,9 @@ document.getElementById("decompressButton").addEventListener("click", () => {
             if (data.error) {
                 displayOutput(data.error);
             } else {
-                const downloadLink2 = `<a href="/download/${data.output}" target="_blank">Download Decrypted File</a>`;
-                // const downloadUrl = `/download/${data.output}`;
-                // const downloadButton = `<button onclick="downloadFile('${downloadUrl}', '${data.output.split('/').pop()}')">Download Folder</button>`;
+                const downloadLink2 = `<a href="/${data.output}" target="_blank">Download Decrypted File</a>`;
+                // const downloadUrl = /download/${data.output};
+                // const downloadButton = <button onclick="downloadFile('${downloadUrl}', '${data.output.split('/').pop()}')">Download Folder</button>;
                 displayOutput(`Files decrypted successfully. ${downloadLink2}`);
             }
         })
@@ -111,4 +111,3 @@ function downloadFile(url, filename) {
             alert("Failed to download the file.");
         });
 }
-
